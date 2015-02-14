@@ -131,7 +131,7 @@
         credential (client/authorize http-transport jackson-factory data-store-factory credentials-file)]
     (.. (com.google.api.services.calendar.Calendar$Builder.
                     http-transport jackson-factory credential)
-                   (setApplicationName "")
+                   (setApplicationName "gcal2org")
                    (build))))
 
 (defn get-events [client calendar-id min-time max-time]
