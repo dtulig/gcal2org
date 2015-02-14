@@ -79,37 +79,6 @@
   (let [items (.getItems events)]
     (map event-to-map items)))
 
-(defn parse-calendar-items
-  "Turns a list of calendar events into clojure maps."
-  [items]
-  (map event-to-map items))
-
-(defn range-predicate [event min-time max-time]
-  (let [interval (t/interval min-time max-time)]
-    (or (t/within? interval (:start event))
-        (t/within? interval (:end event)))))
-
-(defn remove-events-out-of-range [events min-time max-time]
-  (filter #(range-predicate % min-time max-time) events))
-
-(defn get-recurring-events [client calendar-id recurring-id min-time max-time]
-  (.. client
-      events
-      (instances calendar-id recurring-id)
-      (setTimeMax (joda-to-date-time max-time))
-      (setTimeMin (joda-to-date-time min-time))
-      execute))
-
-(defn expand-recurring-events [events client calendar-id min-time max-time]
-  (map #(if (:recurring-id %)
-          (-> (get-recurring-events client calendar-id (:recurring-id %) min-time max-time)
-              parse-calendar-events)
-          %)
-       events))
-
-(defn get-calendar-ids [#^CalendarList calendar-list]
-  (map #(.getId %) (.getItems calendar-list)))
-
 (defn create-file-header [category]
   (format "#+TITLE: Google Calendar Entries
 #+AUTHOR: David Tulig
