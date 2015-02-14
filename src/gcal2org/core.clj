@@ -1,25 +1,13 @@
 (ns gcal2org.core
-  
   (:require [gcal2org.client :as client]
             [gcal2org.calendar :as calendar]
             [gcal2org.org :as org]
+            [gcal2org.cli :as cli]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clj-time.local :as l]
-            [clj-time.core :as t]
-            [clojure.tools.cli :refer [parse-opts]]
-            [environ.core :refer [env]])
+            [clj-time.core :as t])
   (:gen-class))
-
-(def cli-options
-  [["-c" "--calendar CALENDAR" "Calendar id (typically your gmail address)"]
-   ["-d" "--data FILEPATH" "Where data such as the credentials are stored."
-    :default (str (env :home) "/.gcal2org")]
-   ["-s" "--store STORE" "Credentials store"]
-   ["-o" "--output FILEPATH" "The file to be written, otherwise stdout"]
-   [nil "--category CATEGORY" "Org mode CATEGORY."
-    :default "google"]
-   ["-h" "--help"]])
 
 (def max-time (t/plus (.withMillisOfDay (l/local-now) 0) (t/weeks 4)))
 (def min-time (t/minus (.withMillisOfDay (l/local-now) 0) (t/weeks 4)))
@@ -43,11 +31,8 @@
   (str (org/create-file-header category)
        (str/join "\n" (map org/create-org-event-entry events))))
 
-(defn get-cmd-line-args [args]
-  (parse-opts args cli-options))
-
 (defn -main [& args]
-  (let [{:keys [options] :as cmd-args} (get-cmd-line-args args)]
+  (let [{:keys [options] :as cmd-args} (cli/get-cmd-line-args args)]
     (println cmd-args)
     (io/make-parents (:output options))
     (let [client (client/build-client (:store options) (str (:data options) "/client_secrets.json"))]
