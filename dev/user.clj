@@ -7,4 +7,4 @@
    :client-secret (env :client-secret)})
 
 (defn build-client []
-  (core/build-client "/tmp/gcal2org.store" "./client_secrets.json"))
+  (core/build-client "/tmp/gcal2org.store" (str (env :home) "/.gcal2org/client_secrets.json")))
