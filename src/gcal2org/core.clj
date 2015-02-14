@@ -1,17 +1,12 @@
 (ns gcal2org.core
-  (:import com.google.api.services.calendar.model.EventDateTime
-           com.google.api.services.calendar.model.CalendarList
-           com.google.api.services.calendar.Calendar$Builder
-           com.google.api.services.calendar.model.Event
-           com.google.api.client.util.DateTime
-           org.joda.time.Days)
+  (:import org.joda.time.Days)
   (:require [gcal2org.client :as client]
+            [gcal2org.calendar :as calendar]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clj-time.core :as t]
             [clj-time.local :as l]
             [clj-time.format :as f]
-            [clj-time.coerce :as c]
             [clojure.tools.cli :refer [parse-opts]]
             [environ.core :refer [env]])
   (:gen-class))
@@ -26,55 +21,8 @@
     :default "google"]
    ["-h" "--help"]])
 
-(defn show-calendars [client]
-  (.. client
-      calendarList
-      list
-      execute))
-
-(defn get-calendar [client calendar-id]
-  (.. client
-      calendars
-      (get calendar-id)
-      execute))
-
 (def max-time (t/plus (.withMillisOfDay (l/local-now) 0) (t/weeks 4)))
 (def min-time (t/minus (.withMillisOfDay (l/local-now) 0) (t/weeks 4)))
-
-(defn joda-to-date-time [joda-time]
-  (DateTime. (.toDate joda-time)))
-
-(defn get-calendar-events [client calendar-id start end next-page-token]
-  (.. client
-      events
-      (list calendar-id)
-      (setTimeMax (joda-to-date-time max-time))
-      (setTimeMin (joda-to-date-time min-time))
-      (setSingleEvents true)
-      (setPageToken next-page-token)
-      execute))
-
-(defn parse-event-date-time [#^EventDateTime ts]
-  (when ts
-    (if (nil? (.getDateTime ts))
-      (when-not (nil? (.getDate ts))
-        (c/from-long (.getValue (.getDate ts))))
-      (c/from-long (.getValue (.getDateTime ts))))))
-
-(defn event-to-map [event]
-  {:recurring-id (.getRecurringEventId event)
-   :summary (or (.getSummary event) "")
-   :description (or (.getDescription event) "")
-   :date-time-start (.getStart event)
-   :date-time-end (.getEnd event)
-   :start (parse-event-date-time (.getStart event))
-   :end (parse-event-date-time (.getEnd event))})
-
-(defn parse-calendar-events
-  "Turns a list of calendar events into clojure maps."
-  [events]
-  (let [items (.getItems events)]
-    (map event-to-map items)))
 
 (defn create-file-header [category]
   (format "#+TITLE: Google Calendar Entries
@@ -122,18 +70,18 @@
               (:description event)))))
 
 (defn get-events [client calendar-id min-time max-time]
-  (loop [result (get-calendar-events client calendar-id min-time max-time nil)
-         results (parse-calendar-events result)]
+  (loop [result (calendar/get-calendar-events client calendar-id min-time max-time nil)
+         results (calendar/parse-calendar-events result)]
     (println (.getNextPageToken result))
     (if (.getNextPageToken result)
-      (let [page-result (get-calendar-events client
-                                             calendar-id
-                                             min-time
-                                             max-time
-                                             (.getNextPageToken result))]
+      (let [page-result (calendar/get-calendar-events client
+                                                      calendar-id
+                                                      min-time
+                                                      max-time
+                                                      (.getNextPageToken result))]
         (recur page-result
                (into results
-                     (parse-calendar-events page-result))))
+                     (calendar/parse-calendar-events page-result))))
       results)))
 
 (defn create-org-output [category events]
