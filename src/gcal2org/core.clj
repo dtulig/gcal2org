@@ -1,12 +1,12 @@
 (ns gcal2org.core
-  (:import org.joda.time.Days)
+  
   (:require [gcal2org.client :as client]
             [gcal2org.calendar :as calendar]
+            [gcal2org.org :as org]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [clj-time.core :as t]
             [clj-time.local :as l]
-            [clj-time.format :as f]
+            [clj-time.core :as t]
             [clojure.tools.cli :refer [parse-opts]]
             [environ.core :refer [env]])
   (:gen-class))
@@ -24,51 +24,6 @@
 (def max-time (t/plus (.withMillisOfDay (l/local-now) 0) (t/weeks 4)))
 (def min-time (t/minus (.withMillisOfDay (l/local-now) 0) (t/weeks 4)))
 
-(defn create-file-header [category]
-  (format "#+TITLE: Google Calendar Entries
-#+AUTHOR: David Tulig
-#+DESCRIPTION: Created using dtulig/gcal2org
-#+CATEGORY: %s
-#+STARTUP: hidestars
-#+STARTUP: overview
-" category))
-
-(def org-mode-timestamp (f/with-zone (f/formatter "yyyy-MM-dd EE HH:mm") (t/default-time-zone)))
-(def org-mode-time-only (f/with-zone (f/formatter "HH:mm") (t/default-time-zone)))
-(def org-mode-date-only (f/formatter "yyyy-MM-dd"))
-
-(defn event-date-to-org-mode-timestamp
-  ([start]
-   (f/unparse org-mode-timestamp start))
-  ([start end]
-   (if-not (nil? end)
-     (str (if (and (> (.getDays (Days/daysBetween start end)) 0)
-                   (= (.getHourOfDay start) 0)
-                   (= (.getHourOfDay end) 0))
-            (f/unparse org-mode-date-only start)
-            (str (f/unparse org-mode-timestamp start)
-                 "-"
-                 (f/unparse org-mode-time-only end))))
-     (event-date-to-org-mode-timestamp start))))
-
-(defn get-org-event-timestamp [evt]
-  (event-date-to-org-mode-timestamp (:start evt) (:end evt)))
-
-(defn create-org-event-entry [event]
-  (let [start (:date-time-start event)
-        end (:date-time-end event)]
-    (when-not (empty? (:summary event))
-      (format "
-* %s
-<%s>
-:PROPERTIES:
-:END:
-
-%s"
-              (:summary event)
-              (get-org-event-timestamp event)
-              (:description event)))))
-
 (defn get-events [client calendar-id min-time max-time]
   (loop [result (calendar/get-calendar-events client calendar-id min-time max-time nil)
          results (calendar/parse-calendar-events result)]
@@ -85,8 +40,8 @@
       results)))
 
 (defn create-org-output [category events]
-  (str (create-file-header category)
-       (str/join "\n" (map create-org-event-entry events))))
+  (str (org/create-file-header category)
+       (str/join "\n" (map org/create-org-event-entry events))))
 
 (defn get-cmd-line-args [args]
   (parse-opts args cli-options))
