@@ -1,8 +1,5 @@
 (ns gcal2org.core
-  (:import com.google.api.client.json.jackson2.JacksonFactory
-           com.google.api.services.calendar.model.EventDateTime
-           com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-           com.google.api.client.util.store.FileDataStoreFactory
+  (:import com.google.api.services.calendar.model.EventDateTime
            com.google.api.services.calendar.model.CalendarList
            com.google.api.services.calendar.Calendar$Builder
            com.google.api.services.calendar.model.Event
@@ -124,16 +121,6 @@
               (get-org-event-timestamp event)
               (:description event)))))
 
-(defn build-client [store credentials-file]
-  (let [http-transport (GoogleNetHttpTransport/newTrustedTransport)
-        jackson-factory (JacksonFactory/getDefaultInstance)
-        data-store-factory (FileDataStoreFactory. (io/file store))
-        credential (client/authorize http-transport jackson-factory data-store-factory credentials-file)]
-    (.. (com.google.api.services.calendar.Calendar$Builder.
-                    http-transport jackson-factory credential)
-                   (setApplicationName "gcal2org")
-                   (build))))
-
 (defn get-events [client calendar-id min-time max-time]
   (loop [result (get-calendar-events client calendar-id min-time max-time nil)
          results (parse-calendar-events result)]
@@ -160,7 +147,7 @@
   (let [{:keys [options] :as cmd-args} (get-cmd-line-args args)]
     (println cmd-args)
     (io/make-parents (:output options))
-    (let [client (build-client (:store options) (str (:data options) "/client_secrets.json"))]
+    (let [client (client/build-client (:store options) (str (:data options) "/client_secrets.json"))]
       (->> (get-events client (:calendar options) min-time max-time)
            (create-org-output (:category options))
            (spit (:output options))))))

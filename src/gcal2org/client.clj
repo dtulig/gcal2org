@@ -4,6 +4,9 @@
            com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow$Builder
            com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
            com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
+           com.google.api.client.json.jackson2.JacksonFactory
+           com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+           com.google.api.client.util.store.FileDataStoreFactory
            com.google.api.services.calendar.CalendarScopes
            com.google.api.client.auth.oauth2.Credential
            java.io.InputStreamReader)
@@ -25,3 +28,13 @@
                  (build))]
     (.. (AuthorizationCodeInstalledApp. flow (LocalServerReceiver.))
         (authorize "user"))))
+
+(defn build-client [store credentials-file]
+  (let [http-transport (GoogleNetHttpTransport/newTrustedTransport)
+        jackson-factory (JacksonFactory/getDefaultInstance)
+        data-store-factory (FileDataStoreFactory. (io/file store))
+        credential (authorize http-transport jackson-factory data-store-factory credentials-file)]
+    (.. (com.google.api.services.calendar.Calendar$Builder.
+         http-transport jackson-factory credential)
+        (setApplicationName "gcal2org")
+        (build))))
