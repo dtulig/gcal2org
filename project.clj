@@ -20,7 +20,9 @@
   
   :profiles {:dev-common {:source-paths ["dev"]
                           :dependencies [[spyscope "0.1.5"]]
-                          :plugins [[cider/cider-nrepl "0.8.2"]]
+                          :plugins [[cider/cider-nrepl "0.8.2"]
+                                    [lein-environ "1.0.0"]]
                           :injections [(require 'spyscope.core)]}
+             :dev-env {}
              :dev [:dev-common :dev-env]
              :uberjar {:aot :all}})

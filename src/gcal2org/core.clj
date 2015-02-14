@@ -22,26 +22,29 @@
             [clj-time.local :as l]
             [clj-time.format :as f]
             [clj-time.coerce :as c]
-            [clojure.tools.cli :refer [parse-opts]])
+            [clojure.tools.cli :refer [parse-opts]]
+            [environ.core :refer [env]])
   (:gen-class))
 
 (def cli-options
   [["-c" "--calendar CALENDAR" "Calendar id (typically your gmail address)"]
+   ["-d" "--data FILEPATH" "Where data such as the credentials are stored."
+    :default (str (env :home) "/.gcal2org")]
    ["-s" "--store STORE" "Credentials store"]
    ["-o" "--output FILEPATH" "The file to be written, otherwise stdout"]
    [nil "--category CATEGORY" "Org mode CATEGORY."
     :default "google"]
    ["-h" "--help"]])
 
-(defn load-client-secrets [jackson-factory]
+(defn load-client-secrets [jackson-factory credentials-file]
   (GoogleClientSecrets/load
    jackson-factory
-   (InputStreamReader. (-> "client_secrets.json"
-                           io/resource
+   (InputStreamReader. (-> credentials-file
+                           io/file
                            io/input-stream))))
 
-(defn #^Credential authorize [http-transport jackson-factory data-store-factory]
-  (let [client-secrets (load-client-secrets jackson-factory)
+(defn #^Credential authorize [http-transport jackson-factory data-store-factory credentials-file]
+  (let [client-secrets (load-client-secrets jackson-factory credentials-file)
         flow (.. (GoogleAuthorizationCodeFlow$Builder.
                   http-transport jackson-factory client-secrets (java.util.Collections/singleton (CalendarScopes/CALENDAR_READONLY)))
                  (setDataStoreFactory data-store-factory)
@@ -175,11 +178,11 @@
               (get-org-event-timestamp event)
               (:description event)))))
 
-(defn build-client [store]
+(defn build-client [store credentials-file]
   (let [http-transport (GoogleNetHttpTransport/newTrustedTransport)
         jackson-factory (JacksonFactory/getDefaultInstance)
         data-store-factory (FileDataStoreFactory. (io/file store))
-        credential (authorize http-transport jackson-factory data-store-factory)]
+        credential (authorize http-transport jackson-factory data-store-factory credentials-file)]
     (.. (com.google.api.services.calendar.Calendar$Builder.
                     http-transport jackson-factory credential)
                    (setApplicationName "")
@@ -211,7 +214,7 @@
   (let [{:keys [options] :as cmd-args} (get-cmd-line-args args)]
     (println cmd-args)
     (io/make-parents (:output options))
-    (let [client (build-client (:store options))]
+    (let [client (build-client (:store options) (str (:data options) "/client_secrets.json"))]
       (->> (get-events client (:calendar options) min-time max-time)
            (create-org-output (:category options))
            (spit (:output options))))))
