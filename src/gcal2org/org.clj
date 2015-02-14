@@ -34,16 +34,14 @@
   (event-date-to-org-mode-timestamp (:start evt) (:end evt)))
 
 (defn create-org-event-entry [event]
-  (let [start (:date-time-start event)
-        end (:date-time-end event)]
-    (when-not (empty? (:summary event))
-      (format "
+  (when-not (empty? (:summary event))
+    (format "
 * %s
 <%s>
 :PROPERTIES:
 :END:
 
 %s"
-              (:summary event)
-              (get-org-event-timestamp event)
-              (:description event)))))
+            (:summary event)
+            (get-org-event-timestamp event)
+            (:description event))))

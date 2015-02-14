@@ -21,8 +21,11 @@
   :profiles {:dev-common {:source-paths ["dev"]
                           :dependencies [[spyscope "0.1.5"]]
                           :plugins [[cider/cider-nrepl "0.8.2"]
-                                    [lein-environ "1.0.0"]]
+                                    [lein-environ "1.0.0"]
+                                    [jonase/eastwood "0.2.1"]]
                           :injections [(require 'spyscope.core)]}
              :dev-env {}
              :dev [:dev-common :dev-env]
-             :uberjar {:aot :all}})
+             :uberjar {:aot :all}}
+
+  :eastwood {:add-linters [:unused-fn-args :unused-locals :unused-private-vars]})
