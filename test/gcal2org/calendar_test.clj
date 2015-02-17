@@ -10,13 +10,14 @@
 
 (deftest parse-event-date-time-with-date-time
   (testing "Take a google api EventDateTime with a date and a time and
-  turn it into a joda-time object. The result should be in UTC."
+  turn it into a joda-time object. The result should be in the same
+  timezone."
     (let [dt (t/date-time 2015 2 13 16 30 0 0)
           evdt (.. (EventDateTime.)
                    (setDateTime (DateTime. "2015-02-13T16:30:01-06:00")))
           parsed-evdt (parse-event-date-time evdt)]
       (is (= 13 (t/day parsed-evdt)))
-      (is (= 22 (t/hour parsed-evdt))))))
+      (is (= 16 (t/hour parsed-evdt))))))
 
 (deftest parse-event-date-time-with-date-only
   (testing "Take a google api EventDateTime with only a date and turn
@@ -41,13 +42,13 @@
                         (setId "fake_20150218")
                         (setKind "calendar#event")
                         (setOriginalStartTime (.. (EventDateTime.)
-                                                  (setDateTime
+                                                  (setDate
                                                    (DateTime. "2015-02-18"))))
                         (setStart (.. (EventDateTime.)
-                                      (setDateTime
+                                      (setDate
                                        (DateTime. "2015-02-18"))))
                         (setEnd (.. (EventDateTime.)
-                                    (setDateTime
+                                    (setDate
                                      (DateTime. "2015-02-19"))))
                         (setRecurringEventId "fakerecurringid")
                         (setSummary "Birthday")))

@@ -1,22 +1,20 @@
 (ns gcal2org.org
   (:import org.joda.time.Days)
   (:require [clj-time.format :as f]
-            [clj-time.core :as t]))
+            [clj-time.core :as t]
+            [clojure.java.io :as io]))
 
-(def org-mode-timestamp (f/with-zone (f/formatter "yyyy-MM-dd EE HH:mm") (t/default-time-zone)))
-(def org-mode-time-only (f/with-zone (f/formatter "HH:mm") (t/default-time-zone)))
+(def org-mode-timestamp (f/formatter "yyyy-MM-dd EE HH:mm"))
+(def org-mode-time-only (f/formatter "HH:mm"))
 (def org-mode-date-only (f/formatter "yyyy-MM-dd"))
 
 (defn create-file-header [category]
-  (format "#+TITLE: Google Calendar Entries
-#+AUTHOR: David Tulig
-#+DESCRIPTION: Created using dtulig/gcal2org
-#+CATEGORY: %s
-#+STARTUP: hidestars
-#+STARTUP: overview
-" category))
+  (format (-> (io/resource "org-output/header.txt")
+              io/file
+              slurp)
+          category))
 
-(defn event-date-to-org-mode-timestamp
+(defn- event-date-to-org-mode-timestamp
   ([start]
    (f/unparse org-mode-timestamp start))
   ([start end]
@@ -34,14 +32,17 @@
   (event-date-to-org-mode-timestamp (:start evt) (:end evt)))
 
 (defn create-org-event-entry [event]
-  (when-not (empty? (:summary event))
-    (format "
-* %s
+  (let [title (:summary event)
+        timestamp (get-org-event-timestamp event)
+        description (:description event)]
+    (when-not (empty? title)
+      (format "* %s
 <%s>
 :PROPERTIES:
 :END:
 
-%s"
-            (:summary event)
-            (get-org-event-timestamp event)
-            (:description event))))
+%s
+"
+              title
+              timestamp
+              description))))

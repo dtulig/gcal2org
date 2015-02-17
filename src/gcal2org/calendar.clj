@@ -3,8 +3,11 @@
            com.google.api.services.calendar.model.CalendarList
            com.google.api.services.calendar.Calendar$Builder
            com.google.api.services.calendar.model.Event
-           com.google.api.client.util.DateTime)
-  (:require [clj-time.coerce :as c]))
+           com.google.api.client.util.DateTime
+           org.joda.time.format.ISODateTimeFormat)
+  (:require [clj-time.coerce :as c]
+            [clj-time.core :as t]
+            [clj-time.format :as f]))
 
 (defn show-calendars [client]
   (.. client
@@ -36,14 +39,12 @@
     (if (nil? (.getDateTime ts))
       (when-not (nil? (.getDate ts))
         (c/from-long (.getValue (.getDate ts))))
-      (c/from-long (.getValue (.getDateTime ts))))))
+      (f/parse (ISODateTimeFormat/dateTime) (.toString (.getDateTime ts))))))
 
 (defn event-to-map [event]
   {:recurring-id (.getRecurringEventId event)
    :summary (or (.getSummary event) "")
    :description (or (.getDescription event) "")
-   :date-time-start (.getStart event)
-   :date-time-end (.getEnd event)
    :start (parse-event-date-time (.getStart event))
    :end (parse-event-date-time (.getEnd event))})
 
