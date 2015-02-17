@@ -12,8 +12,7 @@
   (testing "Take a google api EventDateTime with a date and a time and
   turn it into a joda-time object. The result should be in the same
   timezone."
-    (let [dt (t/date-time 2015 2 13 16 30 0 0)
-          evdt (.. (EventDateTime.)
+    (let [evdt (.. (EventDateTime.)
                    (setDateTime (DateTime. "2015-02-13T16:30:01-06:00")))
           parsed-evdt (parse-event-date-time evdt)]
       (is (= 13 (t/day parsed-evdt)))
@@ -23,11 +22,10 @@
   (testing "Take a google api EventDateTime with only a date and turn
   it into a joda-time object. The parsed date is in UTC but that
   should be the final representation."
-    (let [dt (t/date-time 2015 2 13 16 30 0 0)
-          evdt (.. (EventDateTime.)
+    (let [evdt (.. (EventDateTime.)
                    (setDate (DateTime. "2015-02-13")))
           parsed-evdt (parse-event-date-time evdt)]
-      (is (= 13))
+      (is (= 13 (t/day parsed-evdt)))
       (is (= 0 (t/hour parsed-evdt))))))
 
 (def full-day-event (.. (Event.)
