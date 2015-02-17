@@ -38,16 +38,25 @@
                                           :description "Desc"})]
       (is (= "* Birthday" (first (str/split result #"\n")))))))
 
+(deftest get-org-event-timestamp-single-timestamp-utc
+  (testing "Simple timestamp to org format."
+    (is (= "2015-02-15 Sun 23:31"
+           (get-org-event-timestamp {:start (t/date-time 2015 2 15 23 31 1 0) :end nil})))))
+
 (deftest get-org-event-timestamp-single-timestamp
   (testing "Simple timestamp to org format."
-    (is (= "2015-02-16 Mon 17:31"
-           (get-org-event-timestamp {:start (t/date-time 2015 2 16 17 31 1 0) :end nil})))))
+    (is (= "2015-02-15 Sun 17:31"
+           (get-org-event-timestamp {:start (t/to-time-zone (t/date-time 2015 2 15 23 31 1 0)
+                                                            (t/time-zone-for-offset -6))
+                                     :end nil})))))
 
 (deftest get-org-event-timestamp-start-end
   (testing "Simple timestamp to org format."
-    (is (= "2015-02-16 Mon 17:31-18:31"
-           (get-org-event-timestamp {:start (t/date-time 2015 2 16 17 31 1 0)
-                                     :end (t/date-time 2015 2 16 18 31 1 0)})))))
+    (is (= "2015-02-15 Sun 16:31-17:31"
+           (get-org-event-timestamp {:start (t/to-time-zone (t/date-time 2015 2 15 22 31 1 0)
+                                                            (t/time-zone-for-offset -6))
+                                     :end (t/to-time-zone (t/date-time 2015 2 15 23 31 1 0)
+                                                          (t/time-zone-for-offset -6))})))))
 
 (deftest get-org-event-timestamp-date-only
   (testing "Simple timestamp to org format."
