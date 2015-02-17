@@ -8,10 +8,16 @@
 (def org-mode-time-only (f/formatter "HH:mm"))
 (def org-mode-date-only (f/formatter "yyyy-MM-dd"))
 
+(def org-header "#+TITLE: Google Calendar Entries
+#+AUTHOR: David Tulig
+#+DESCRIPTION: Created using dtulig/gcal2org
+#+CATEGORY: %s
+#+STARTUP: hidestars
+#+STARTUP: overview
+")
+
 (defn create-file-header [category]
-  (format (-> (io/resource "org-output/header.txt")
-              io/file
-              slurp)
+  (format org-header
           category))
 
 (defn- event-date-to-org-mode-timestamp

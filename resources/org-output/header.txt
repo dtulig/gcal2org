@@ -1,6 +1,0 @@
-#+TITLE: Google Calendar Entries
-#+AUTHOR: David Tulig
-#+DESCRIPTION: Created using dtulig/gcal2org
-#+CATEGORY: %s
-#+STARTUP: hidestars
-#+STARTUP: overview
