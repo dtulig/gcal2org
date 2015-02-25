@@ -6,7 +6,7 @@ Gcal2org is a simple utility that uses the Google Calendar API to pull down even
 
 The gcal2org script will download and install the binaries on the first run.
 
-1. Download the gcal2org script from the latest release.
+1. Download the [`gcal2org` script from the latest release](https://raw.githubusercontent.com/dtulig/gcal2org/0.1.0/bin/gcal2org).
 2. Place it in your `$PATH`.
 3. Set it to be executable. (`chmod 755 gcal2org`)
 4. Run it.
