@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# Ensure this file is executable via `chmod a+x gcal2org`, then place
+# it somewhere on your $PATH, like ~/bin. The rest of Leiningen will
+# be installed upon first run into the ~/.lein/self-installs directory.
+
+export GCAL2ORG_VERSION="0.1.0-SNAPSHOT"
+
+GCAL2ORG_JAR="$HOME/.gcal2org/gcal2org-$GCAL2ORG_VERSION-standalone.jar"
+
+# A lot of the following is from or heavily influenced by
+# https://github.com/technomancy/leiningen
+function download_failed_message {
+    echo "Failed to download $1 (exit code $2)"
+    echo "It's possible your HTTP client's certificate store does not have the"
+    echo "correct certificate authority needed. This is often caused by an"
+    echo "out-of-date version of libssl. It's also possible that you're behind a"
+    echo "firewall and haven't set HTTP_PROXY and HTTPS_PROXY."
+}
+
+# normalize $0 on certain BSDs
+if [ "$(dirname "$0")" = "." ]; then
+    SCRIPT="$(which $(basename "$0"))"
+    if [ -z "$SCRIPT" ]; then
+        SCRIPT="$0"
+    fi
+else
+    SCRIPT="$0"
+fi
+
+# resolve symlinks to the script itself portably
+while [ -h "$SCRIPT" ] ; do
+    ls=`ls -ld "$SCRIPT"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+        SCRIPT="$link"
+    else
+        SCRIPT="$(dirname "$SCRIPT"$)/$link"
+    fi
+done
+
+if [ "$HTTP_CLIENT" = "" ]; then
+    if type -p curl >/dev/null 2>&1; then
+        if [ "$https_proxy" != "" ]; then
+            CURL_PROXY="-x $https_proxy"
+        fi
+        HTTP_CLIENT="curl $CURL_PROXY -f -L -o"
+    else
+        HTTP_CLIENT="wget -O"
+    fi
+fi
+
+function install {
+    echo "Downloading gcal2org to $GCAL2ORG_JAR now..."
+    mkdir -p "$(dirname "$GCAL2ORG_JAR")"
+    GCAL2ORG_URL="https://github.com/dtulig/gcal2org/releases/download/$GCAL2ORG_VERSION/gcal2org-$GCAL2ORG_VERSION-standalone.zip"
+    $HTTP_CLIENT "$GCAL2ORG_JAR.pending" "$GCAL2ORG_URL"
+    local exit_code=$?
+    if [ $exit_code == 0 ]; then
+        mv -f "$GCAL2ORG_JAR.pending" "$GCAL2ORG_JAR"
+    else
+        rm "$GCAL2ORG_JAR.pending" 2> /dev/null
+        download_failed_message "$GCAL2ORG_URL" "$exit_code"
+        exit 1
+    fi
+}
+
+if [ -f $GCAL2ORG_JAR ]; then
+    java -jar $GCAL2ORG_JAR $@
+else
+    install
+fi
