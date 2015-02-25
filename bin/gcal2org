@@ -4,7 +4,7 @@
 # it somewhere on your $PATH, like ~/bin. The rest of Leiningen will
 # be installed upon first run into the ~/.lein/self-installs directory.
 
-export GCAL2ORG_VERSION="0.1.0"
+export GCAL2ORG_VERSION="0.1.1-SNAPSHOT"
 
 GCAL2ORG_JAR="$HOME/.gcal2org/gcal2org-$GCAL2ORG_VERSION-standalone.jar"
 
