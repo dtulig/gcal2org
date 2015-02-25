@@ -37,12 +37,12 @@ If anyone has a better way of handling this I'd be interested in hearing it!
 
 Basic usage requires the email address for your calendar, where to store your OAuth credentials, and the output org file.
 
-   $ gcal2org -c "example@example.com" -s "/home/example/.gcal2org/calendar.store" -o "/home/example/Dropbox/org/calendar.org"
+    $ gcal2org -c "example@example.com" -s "/home/example/.gcal2org/calendar.store" -o "/home/example/Dropbox/org/calendar.org"
 
 A full table of the command line arguments can be found below or by running `gcal2org -h`.
 
 Command flag    | Description
---------------------------------------------------------------------------
+----------------|--------------------------------------------------------
 `-c/--calendar` | Email address of the Google Calendar you want to access.
 `-d/--data`     | Base directory for gcal2org data.
 `-s/--store`    | Location where Google Calendar credentials are stored.
