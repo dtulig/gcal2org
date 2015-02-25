@@ -3,6 +3,7 @@
             [gcal2org.calendar :as calendar]
             [gcal2org.org :as org]
             [gcal2org.cli :as cli]
+            [clojure.string :as string]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clj-time.local :as l]
@@ -31,12 +32,20 @@
   (str (org/create-file-header category)
        (str/join "\n" (map org/create-org-event-entry events))))
 
+(defn usage [options-summary]
+  (->> ["Options:"
+        options-summary
+        ""
+        "Please go to https://github.com/dtulig/gcal2org for more information."]
+       (string/join \newline)))
+
 (defn -main [& args]
-  (let [{:keys [options] :as cmd-args} (cli/get-cmd-line-args args)]
-    (println cmd-args)
-    (io/make-parents (:output options))
-    (let [client (client/build-client (:store options) (str (:data options) "/client_secrets.json"))]
-      (->> (get-events client (:calendar options) min-time max-time)
-           (create-org-output (:category options))
-           (spit (:output options))))))
+  (let [{:keys [options summary] :as cmd-args} (cli/get-cmd-line-args args)]
+    (if-not (:help options)
+      (do (io/make-parents (:output options))
+        (let [client (client/build-client (:store options) (str (:data options) "/client_secrets.json"))]
+          (->> (get-events client (:calendar options) min-time max-time)
+               (create-org-output (:category options))
+               (spit (:output options)))))
+      (println (usage summary)))))
 
