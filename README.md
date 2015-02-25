@@ -7,7 +7,7 @@ Gcal2org is a simple utility that uses the Google Calendar API to pull down even
 The gcal2org script will download and install the binaries on the first run.
 
 1. Download the gcal2org script from the latest release.
-2. Place it in your $PATH.
+2. Place it in your `$PATH`.
 3. Set it to be executable. (`chmod 755 gcal2org`)
 4. Run it.
 
@@ -37,7 +37,9 @@ If anyone has a better way of handling this I'd be interested in hearing it!
 
 Basic usage requires the email address for your calendar, where to store your OAuth credentials, and the output org file.
 
-    $ gcal2org -c "example@example.com" -s "/home/example/.gcal2org/calendar.store" -o "/home/example/Dropbox/org/calendar.org"
+    $ gcal2org -c "example@example.com" \
+               -s "/home/example/.gcal2org/calendar.store" \
+               -o "/home/example/Dropbox/org/calendar.org"
 
 A full table of the command line arguments can be found below or by running `gcal2org -h`.
 
